@@ -2,33 +2,1059 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <base target="_top">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>주차 위치 기록</title>
+
   <style>
+    :root {
+      --lav: #D9CEF2;
+      --peri: #A7B2F2;
+      --sky: #AEBFF2;
+      --mist: #D0DCF2;
+      --ink: #2E2A4A;
+      --sub: #6B6890;
+    }
+
     * {
       box-sizing: border-box;
     }
-    html, body {
+
+    html {
+      max-width: 100%;
+      overflow-x: hidden;
+      background: linear-gradient(
+        170deg,
+        var(--lav) 0%,
+        var(--mist) 55%,
+        #ffffff 100%
+      ) fixed;
+    }
+
+    body {
       margin: 0;
+      max-width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 20px 16px 32px;
+      font-family: -apple-system, "Apple SD Gothic Neo",
+        "Malgun Gothic", sans-serif;
+      color: var(--ink);
+    }
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg svg {
       width: 100%;
       height: 100%;
-      overflow: hidden;
-      background: #D9CEF2;
-    }
-    iframe {
       display: block;
+    }
+
+    .wrap {
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .tile {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(
+        145deg,
+        #ffffff 0%,
+        var(--lav) 55%,
+        var(--peri) 130%
+      );
+      box-shadow:
+        0 8px 16px rgba(167, 178, 242, 0.45),
+        inset 0 2px 0 rgba(255, 255, 255, 0.95),
+        inset 0 -3px 6px rgba(167, 178, 242, 0.3);
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .titles {
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .sub {
+      margin: 3px 0 0;
+      font-size: 13px;
+      color: var(--sub);
+    }
+
+    .chip {
+      margin-left: auto;
+      flex: none;
+      white-space: nowrap;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .card,
+    .pcard {
+      padding: 18px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 10px 30px rgba(167, 178, 242, 0.35);
+    }
+
+    .row {
+      margin-top: 14px;
+    }
+
+    .grid,
+    .spot {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 8px 2px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--sub);
+    }
+
+    .ico {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+    }
+
+    .ic {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: var(--ink);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    input,
+    select {
       width: 100%;
-      height: 100vh;
-      height: 100dvh;
+      max-width: 100%;
+      min-width: 0;
+      padding: 14px;
+      border: 2px solid transparent;
+      border-radius: 18px;
+      font-family: inherit;
+      font-size: 16px;
+      color: var(--ink);
+      background-color: rgba(208, 220, 242, 0.45);
+      outline: none;
+    }
+
+    input::placeholder {
+      color: #837fa6;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--peri);
+      background-color: #ffffff;
+    }
+
+    input.big {
+      padding: 18px 8px;
+      font-size: 24px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    input.big::placeholder {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    select {
+      padding: 14px 44px 14px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1l6 6 6-6' fill='none' stroke='%236B6890' stroke-width='2' stroke-linecap='round'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 18px center;
+    }
+
+    #customRow {
+      display: none;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 17px;
       border: 0;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+      background: linear-gradient(90deg, var(--peri), var(--lav));
+      box-shadow:
+        0 8px 20px rgba(167, 178, 242, 0.55),
+        inset 0 2px 0 rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #msg {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    #msg.ok {
+      display: block;
+      background: var(--mist);
+      color: var(--ink);
+    }
+
+    #msg.err {
+      display: block;
+      background: #FCE6EC;
+      color: #9B2C4A;
+    }
+
+    #activeCard {
+      display: none;
+    }
+
+    .pcard {
+      margin-bottom: 14px;
+    }
+
+    .phead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink);
+      background: var(--mist);
+    }
+
+    .box {
+      padding: 16px 8px;
+      border-radius: 22px;
+      text-align: center;
+      background: rgba(208, 220, 242, 0.45);
+    }
+
+    .box .k {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sub);
+    }
+
+    .box .v {
+      margin-top: 6px;
+      font-size: 30px;
+      font-weight: 800;
+      word-break: break-all;
+    }
+
+    .elapsed {
+      margin-top: 16px;
+      padding: 20px;
+      border-radius: 24px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--lav), var(--mist));
+    }
+
+    .elapsed .k {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--sub);
+    }
+
+    .elapsed .v {
+      margin-top: 6px;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .complete-form {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
     }
   </style>
+
+  <script>
+    window.onerror = function(message) {
+      var m = document.getElementById('msg');
+
+      if (m) {
+        m.className = 'err';
+        m.textContent = '오류: ' + message;
+      } else {
+        alert('오류: ' + message);
+      }
+
+      return false;
+    };
+  </script>
 </head>
+
 <body>
-  <iframe
-    title="주차 위치 기록"
-    src="https://script.google.com/macros/s/AKfycbyXWrsQgKP48XGAqWYXZFBriE7PNcSn4qNqWgOW47_D4cjNprOFbOkvrhpIN5mseksC6w/exec">
-  </iframe>
+
+  <!-- 아이콘 -->
+  <svg width="0" height="0"
+       style="position:absolute"
+       aria-hidden="true">
+
+    <symbol id="i-car" viewBox="0 0 24 24">
+      <path d="M4 15v-3.5L6 7.3A2 2 0 0 1 7.8 6h8.4A2 2 0 0 1 18 7.3l2 4.2V15"/>
+      <path d="M3 15h18v2.5a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1V17h-9v.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V15z"/>
+      <path d="M7.5 12.5h.01M16.5 12.5h.01"/>
+    </symbol>
+
+    <symbol id="i-floor" viewBox="0 0 24 24">
+      <path d="M12 4l8 4-8 4-8-4 8-4z"/>
+      <path d="M4 12l8 4 8-4"/>
+      <path d="M4 16l8 4 8-4"/>
+    </symbol>
+
+    <symbol id="i-pillar" viewBox="0 0 24 24">
+      <path d="M6 5h12M6 19h12"/>
+      <rect x="9" y="5" width="6" height="14" rx="1"/>
+    </symbol>
+
+    <symbol id="i-pin" viewBox="0 0 24 24">
+      <path d="M12 21s6-5.6 6-10.5A6 6 0 0 0 6 10.5C6 15.4 12 21 12 21z"/>
+      <circle cx="12" cy="10.5" r="2.2"/>
+    </symbol>
+
+    <symbol id="i-clock" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8"/>
+      <path d="M12 7.5V12l3 2"/>
+    </symbol>
+
+  </svg>
+
+  <!-- 배경 -->
+  <div class="bg" aria-hidden="true">
+    <svg viewBox="0 0 360 640"
+         preserveAspectRatio="xMidYMax slice"
+         xmlns="http://www.w3.org/2000/svg">
+
+      <circle cx="310" cy="90" r="96"
+              fill="#ffffff" opacity="0.35"/>
+
+      <circle cx="30" cy="230" r="70"
+              fill="#D9CEF2" opacity="0.45"/>
+
+      <g fill="#AEBFF2" opacity="0.22">
+        <rect x="10" y="470" width="44" height="200" rx="22"/>
+        <rect x="92" y="470" width="44" height="200" rx="22"/>
+        <rect x="174" y="470" width="44" height="200" rx="22"/>
+        <rect x="256" y="470" width="44" height="200" rx="22"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="wrap">
+
+    <!-- 상단 제목 -->
+    <div class="top">
+      <div class="tile logo">P</div>
+
+      <div class="titles">
+        <h1 id="title">주차 위치 기록</h1>
+        <p class="sub" id="subtitle">
+          방금 세운 자리를 적어 두세요
+        </p>
+      </div>
+
+      <div class="chip" id="today"></div>
+    </div>
+
+    <!-- 화면 1: 주차 위치 입력 -->
+    <div id="view1">
+      <div class="card">
+
+        <label for="vehicle">
+          <span class="tile ico">
+            <svg class="ic">
+              <use href="#i-car"/>
+            </svg>
+          </span>
+          오늘의 붕붕이
+        </label>
+
+        <select id="vehicle"></select>
+
+        <div class="row" id="customRow">
+          <label for="vehicleCustom">붕붕이 이름</label>
+          <input
+            id="vehicleCustom"
+            type="text"
+            maxlength="30"
+            placeholder="예: 엄마 차"
+            autocomplete="off">
+        </div>
+
+        <div class="grid">
+
+          <div class="field">
+            <label for="floor">
+              <span class="tile ico">
+                <svg class="ic">
+                  <use href="#i-floor"/>
+                </svg>
+              </span>
+              층수
+            </label>
+
+            <input
+              id="floor"
+              class="big"
+              type="text"
+              maxlength="30"
+              placeholder="예: B2"
+              autocomplete="off">
+          </div>
+
+          <div class="field">
+            <label for="pillar">
+              <span class="tile ico">
+                <svg class="ic">
+                  <use href="#i-pillar"/>
+                </svg>
+              </span>
+              기둥 번호
+            </label>
+
+            <input
+              id="pillar"
+              class="big"
+              type="text"
+              maxlength="30"
+              placeholder="예: E-14"
+              autocomplete="off">
+          </div>
+
+        </div>
+
+        <div class="row">
+          <label for="place">
+            <span class="tile ico">
+              <svg class="ic">
+                <use href="#i-pin"/>
+              </svg>
+            </span>
+            장소
+          </label>
+
+          <input
+            id="place"
+            type="text"
+            maxlength="30"
+            placeholder="예: 롯데마트"
+            autocomplete="off">
+        </div>
+
+        <div class="row">
+          <label for="parkedAt">
+            <span class="tile ico">
+              <svg class="ic">
+                <use href="#i-clock"/>
+              </svg>
+            </span>
+            주차 시각
+          </label>
+
+          <input
+            id="parkedAt"
+            type="datetime-local">
+        </div>
+
+        <button id="saveBtn" type="button">
+          저장
+        </button>
+
+        <div id="msg" role="status"></div>
+
+      </div>
+    </div>
+
+    <!-- 화면 2: 현재 주차 중 -->
+    <div id="activeCard">
+
+      <div class="pcard">
+
+        <div class="phead">
+          <span class="pill" id="vVehicle">-</span>
+
+          <span
+            id="vPlace"
+            style="font-weight:700; font-size:14px; color:var(--sub);">
+            -
+          </span>
+        </div>
+
+        <div class="spot">
+
+          <div class="box">
+            <div class="k">층수</div>
+            <div class="v" id="vFloor">-</div>
+          </div>
+
+          <div class="box">
+            <div class="k">기둥 번호</div>
+            <div class="v" id="vPillar">-</div>
+          </div>
+
+        </div>
+
+        <div class="elapsed">
+          <div class="k">주차한 지</div>
+          <div class="v" id="vElapsed">-</div>
+        </div>
+
+        <button id="foundBtn" type="button"
+                style="margin-top:16px;">
+          차 찾았어요
+        </button>
+
+        <!-- 출차 입력 -->
+        <div id="completeForm" class="complete-form">
+
+          <div class="row" style="margin-top:0;">
+            <label for="duration">
+              차 찾는 데 걸린 시간 (분)
+            </label>
+
+            <input
+              id="duration"
+              type="number"
+              min="0"
+              step="1"
+              inputmode="numeric"
+              placeholder="예: 15"
+              autocomplete="off">
+          </div>
+
+          <div class="row">
+            <label for="fee">
+              추가 요금 (원)
+            </label>
+
+            <input
+              id="fee"
+              type="number"
+              min="0"
+              step="1"
+              inputmode="numeric"
+              placeholder="없으면 0"
+              autocomplete="off">
+          </div>
+
+          <button id="completeBtn"
+                  type="button"
+                  style="margin-top:14px;">
+            기록 완료하기
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    var MAX_LEN = 30;
+    var OTHER = '__other__';
+
+    var VEHICLES = [
+      '자동차',
+      '자전거',
+      '오토바이'
+    ];
+
+    var timer = null;
+    var activeRecord = null;
+
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    // 현재 날짜와 시각
+    function nowLocal() {
+      var d = new Date();
+
+      return d.getFullYear() + '-' +
+        pad(d.getMonth() + 1) + '-' +
+        pad(d.getDate()) + 'T' +
+        pad(d.getHours()) + ':' +
+        pad(d.getMinutes());
+    }
+
+    function val(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    // 안내 메시지
+    function show(kind, text) {
+      var m = document.getElementById('msg');
+
+      m.className = kind;
+      m.textContent = text;
+    }
+
+    // 저장 버튼 상태
+    function setBusy(busy) {
+      var b = document.getElementById('saveBtn');
+
+      b.disabled = busy;
+      b.textContent = busy ? '저장하는 중...' : '저장';
+    }
+
+    // 차량 선택 항목 만들기
+    function buildVehicleOptions() {
+      var html =
+        '<option value="">뭘 타고 오셨어요?</option>';
+
+      for (var i = 0; i < VEHICLES.length; i++) {
+        html += '<option value="' +
+          VEHICLES[i] + '">' +
+          VEHICLES[i] +
+          '</option>';
+      }
+
+      html += '<option value="' +
+        OTHER +
+        '">직접 적기</option>';
+
+      document.getElementById('vehicle').innerHTML = html;
+    }
+
+    // 직접 입력 선택 시 입력칸 표시
+    function onVehicleChange() {
+      var isOther =
+        document.getElementById('vehicle').value === OTHER;
+
+      document.getElementById('customRow').style.display =
+        isOther ? 'block' : 'none';
+
+      if (isOther) {
+        document.getElementById('vehicleCustom').focus();
+      } else {
+        document.getElementById('vehicleCustom').value = '';
+      }
+    }
+
+    // 선택된 차량 이름 가져오기
+    function getVehicle() {
+      var v = document.getElementById('vehicle').value;
+
+      return v === OTHER
+        ? val('vehicleCustom')
+        : v;
+    }
+
+    // 입력 화면 초기화
+    function resetForm() {
+      document.getElementById('floor').value = '';
+      document.getElementById('pillar').value = '';
+      document.getElementById('place').value = '';
+      document.getElementById('parkedAt').value = nowLocal();
+
+      document.getElementById('vehicle').value = '';
+      document.getElementById('vehicleCustom').value = '';
+      document.getElementById('customRow').style.display = 'none';
+
+      document.getElementById('duration').value = '';
+      document.getElementById('fee').value = '';
+    }
+
+    // 입력값 검사
+    function check(f) {
+      if (!f.vehicle) {
+        return f.vehicleIsOther
+          ? '붕붕이 이름을 적어 주세요.'
+          : '붕붕이를 골라 주세요.';
+      }
+
+      if (!f.floor) {
+        return '층수를 적어 주세요. (예: B2)';
+      }
+
+      if (!f.pillar) {
+        return '기둥 번호를 적어 주세요. (예: E-14)';
+      }
+
+      if (!f.place) {
+        return '장소를 적어 주세요. (예: 롯데마트)';
+      }
+
+      if (!f.parkedAt) {
+        return '주차 시각을 골라 주세요.';
+      }
+
+      if (f.vehicle.length > MAX_LEN) {
+        return '붕붕이 이름은 30자 이내로 적어 주세요.';
+      }
+
+      if (f.floor.length > MAX_LEN) {
+        return '층수는 30자 이내로 적어 주세요.';
+      }
+
+      if (f.pillar.length > MAX_LEN) {
+        return '기둥 번호는 30자 이내로 적어 주세요.';
+      }
+
+      if (f.place.length > MAX_LEN) {
+        return '장소는 30자 이내로 적어 주세요.';
+      }
+
+      return '';
+    }
+
+    // 주차 경과 시간 갱신
+    function updateElapsed() {
+      if (!activeRecord || !activeRecord.rawParkedAt) {
+        return;
+      }
+
+      var start =
+        new Date(activeRecord.rawParkedAt).getTime();
+
+      if (isNaN(start)) {
+        document.getElementById('vElapsed').textContent =
+          '시간 확인 불가';
+        return;
+      }
+
+      var diffMin = Math.max(
+        0,
+        Math.floor((Date.now() - start) / 60000)
+      );
+
+      var text = '';
+
+      if (diffMin < 1) {
+        text = '방금 전';
+      } else if (diffMin < 60) {
+        text = diffMin + '분 경과';
+      } else {
+        var h = Math.floor(diffMin / 60);
+        var m = diffMin % 60;
+
+        text = h + '시간 ' + m + '분 경과';
+      }
+
+      document.getElementById('vElapsed').textContent = text;
+    }
+
+    // 입력 화면 또는 현재 주차 화면 표시
+    function showActiveRecord(record) {
+      var view1 = document.getElementById('view1');
+      var activeCard = document.getElementById('activeCard');
+
+      if (!record) {
+        activeRecord = null;
+
+        if (timer) {
+          clearInterval(timer);
+          timer = null;
+        }
+
+        activeCard.style.display = 'none';
+        view1.style.display = 'block';
+
+        document.getElementById('title').textContent =
+          '주차 위치 기록';
+
+        document.getElementById('subtitle').textContent =
+          '방금 세운 자리를 적어 두세요';
+
+        window.scrollTo(0, 0);
+        return;
+      }
+
+      activeRecord = record;
+
+      document.getElementById('vVehicle').textContent =
+        record.vehicle || '-';
+
+      document.getElementById('vPlace').textContent =
+        record.place || '-';
+
+      document.getElementById('vFloor').textContent =
+        record.floor || '-';
+
+      document.getElementById('vPillar').textContent =
+        record.pillar || '-';
+
+      document.getElementById('completeForm').style.display =
+        'none';
+
+      view1.style.display = 'none';
+      activeCard.style.display = 'block';
+
+      document.getElementById('title').textContent =
+        '주차 중';
+
+      document.getElementById('subtitle').textContent =
+        '현재 주차된 위치입니다';
+
+      updateElapsed();
+
+      if (timer) {
+        clearInterval(timer);
+      }
+
+      timer = setInterval(updateElapsed, 60000);
+
+      window.scrollTo(0, 0);
+    }
+
+    // 마지막 주차 정보 가져오기
+    function loadActiveParking() {
+      google.script.run
+        .withSuccessHandler(function(r) {
+          if (r && r.ok) {
+            showActiveRecord(r.active);
+          } else {
+            show(
+              'err',
+              r && r.error
+                ? r.error
+                : '주차 정보를 불러오지 못했습니다.'
+            );
+          }
+        })
+        .withFailureHandler(function(e) {
+          show(
+            'err',
+            '오류: ' +
+            (e && e.message ? e.message : e)
+          );
+        })
+        .getActiveParking();
+    }
+
+    // 주차 위치 저장
+    function onSave() {
+      var f = {
+        vehicle: getVehicle(),
+
+        vehicleIsOther:
+          document.getElementById('vehicle').value === OTHER,
+
+        floor: val('floor'),
+        pillar: val('pillar'),
+        place: val('place'),
+
+        parkedAt:
+          document.getElementById('parkedAt').value
+      };
+
+      var problem = check(f);
+
+      if (problem) {
+        show('err', problem);
+        return;
+      }
+
+      show('', '');
+      setBusy(true);
+
+      google.script.run
+        .withSuccessHandler(function(r) {
+          setBusy(false);
+
+          if (r && r.ok && r.active) {
+            resetForm();
+            showActiveRecord(r.active);
+          } else {
+            show(
+              'err',
+              r && r.error
+                ? r.error
+                : '저장에 실패했습니다.'
+            );
+          }
+        })
+        .withFailureHandler(function(e) {
+          setBusy(false);
+
+          show(
+            'err',
+            '저장에 실패했습니다: ' +
+            (e && e.message ? e.message : e)
+          );
+        })
+        .saveParking(f);
+    }
+
+    // 차 찾았어요 버튼
+    document.getElementById('foundBtn')
+      .addEventListener('click', function() {
+        var form =
+          document.getElementById('completeForm');
+
+        form.style.display =
+          form.style.display === 'block'
+            ? 'none'
+            : 'block';
+      });
+
+    // 출차 기록 완료
+    document.getElementById('completeBtn')
+      .addEventListener('click', function() {
+        if (!activeRecord) {
+          alert('현재 주차 정보를 찾을 수 없습니다.');
+          return;
+        }
+
+        var duration = val('duration');
+        var fee = val('fee');
+
+        if (!duration) {
+          alert('차 찾는 데 걸린 시간을 적어 주세요.');
+          return;
+        }
+
+        if (
+          !/^\d+$/.test(duration) ||
+          (fee !== '' && !/^\d+$/.test(fee))
+        ) {
+          alert('시간과 요금은 숫자로 입력해 주세요.');
+          return;
+        }
+
+        var btn = this;
+
+        btn.disabled = true;
+        btn.textContent = '처리 중...';
+
+        google.script.run
+          .withSuccessHandler(function(r) {
+            btn.disabled = false;
+            btn.textContent = '기록 완료하기';
+
+            if (r && r.ok) {
+              alert('출차 기록이 완료되었습니다.');
+
+              resetForm();
+              showActiveRecord(null);
+              show('ok', '출차 기록이 저장되었습니다.');
+            } else {
+              alert(
+                '실패: ' +
+                (r && r.error ? r.error : '오류 발생')
+              );
+            }
+          })
+          .withFailureHandler(function(e) {
+            btn.disabled = false;
+            btn.textContent = '기록 완료하기';
+
+            alert(
+              '오류: ' +
+              (e && e.message ? e.message : e)
+            );
+          })
+          .completeParking({
+            row: activeRecord.rowIndex,
+            duration: duration,
+            fee: fee || '0'
+          });
+      });
+
+    // 날짜 표시 및 초기 설정
+    var now = new Date();
+
+    document.getElementById('today').textContent =
+      (now.getMonth() + 1) + '월 ' +
+      now.getDate() + '일';
+
+    buildVehicleOptions();
+
+    document.getElementById('vehicle')
+      .addEventListener('change', onVehicleChange);
+
+    document.getElementById('parkedAt').value =
+      nowLocal();
+
+    document.getElementById('saveBtn')
+      .addEventListener('click', onSave);
+
+    // 페이지를 열 때 현재 주차 정보만 조회
+    loadActiveParking();
+
+  </script>
+
 </body>
 </html>
